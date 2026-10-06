@@ -22,14 +22,6 @@ function AdminPanel({ adminId, scenarioId }) {
     }
   };
 
-  const getRoomName = (roomId) => {
-    return roomId.substring(0, 8) + '...';
-  };
-
-  const getLecturerName = (lecturerId) => {
-    return lecturerId.substring(0, 8) + '...';
-  };
-
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
       {/* Title */}
@@ -140,10 +132,10 @@ function AdminPanel({ adminId, scenarioId }) {
                     .map((booking) => (
                       <tr key={booking.id} style={{ borderBottom: '1px solid #E8D4C8' }}>
                         <td style={{ padding: '12px', color: '#666' }}>
-                          {getLecturerName(booking.lecturer_id)}
+                          {booking.lecturer_name}
                         </td>
                         <td style={{ padding: '12px', color: '#666' }}>
-                          {getRoomName(booking.room_id)}
+                          {booking.room_name}
                         </td>
                         <td style={{ padding: '12px', color: '#666' }}>
                           {booking.jam_ke}
