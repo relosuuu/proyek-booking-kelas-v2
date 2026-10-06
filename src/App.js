@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Login from './components/Login';
-import RoomsList from './components/RoomList';
 import LecturerBooking from './components/LecturerBooking';
 import StudentAvailabilityChecker from './components/StudentAvailabilityChecker';
 import AdminPanel from './components/AdminPanel'; // We'll create this next

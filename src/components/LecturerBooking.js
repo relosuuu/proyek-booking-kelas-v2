@@ -174,7 +174,6 @@ function LecturerBooking({ lecturer_id }) {
       const bookings = response.data.bookings || [];
 
       // Auto-transition expired bookings to canceled
-      const today = new Date().toISOString().split('T')[0];
       const currentTime = new Date();
 
       const updatedBookings = await Promise.all(

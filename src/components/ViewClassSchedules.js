@@ -87,6 +87,7 @@ function ViewClassSchedules({ scenarioId }) {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenarioId]);
 
   const fetchData = async () => {
