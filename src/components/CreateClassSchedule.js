@@ -25,7 +25,7 @@ function CreateClassSchedule({ adminId, scenarioId }) {
   const fetchData = async () => {
     try {
       const roomsResponse = await getRooms();
-      setRooms(roomsResponse.data);
+      setRooms(Array.isArray(roomsResponse.data) ? roomsResponse.data : []);
 
       const lecturersResponse = await axios.get(
         `${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users?role=eq.lecturer`,
@@ -36,7 +36,7 @@ function CreateClassSchedule({ adminId, scenarioId }) {
           },
         }
       );
-      setLecturers(lecturersResponse.data);
+      setLecturers(Array.isArray(lecturersResponse.data) ? lecturersResponse.data : []);
     } catch (err) {
       setError('Failed to load data');
     }

@@ -96,8 +96,9 @@ function ScenarioManagement() {
           },
         }
       );
-      setScenarios(response.data);
-      const active = response.data.find((s) => s.is_active);
+      const scenarioList = Array.isArray(response.data) ? response.data : [];
+      setScenarios(scenarioList);
+      const active = scenarioList.find((s) => s.is_active);
       setActiveScenario(active);
     } catch (err) {
       setError('Failed to load scenarios');

@@ -101,7 +101,7 @@ function ViewClassSchedules({ scenarioId }) {
           },
         }
       );
-      setSchedules(schedulesResponse.data);
+      setSchedules(Array.isArray(schedulesResponse.data) ? schedulesResponse.data : []);
 
       const lecturersResponse = await axios.get(
         `${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users?role=eq.lecturer`,
@@ -112,10 +112,10 @@ function ViewClassSchedules({ scenarioId }) {
           },
         }
       );
-      setLecturers(lecturersResponse.data);
+      setLecturers(Array.isArray(lecturersResponse.data) ? lecturersResponse.data : []);
 
       const roomsResponse = await getRooms();
-      setRooms(roomsResponse.data);
+      setRooms(Array.isArray(roomsResponse.data) ? roomsResponse.data : []);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);

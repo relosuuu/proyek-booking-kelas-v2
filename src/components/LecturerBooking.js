@@ -222,7 +222,7 @@ function LecturerBooking({ lecturer_id }) {
   const fetchRooms = async () => {
     try {
       const response = await getRooms();
-      setRooms(response.data);
+      setRooms(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       setError('Failed to load rooms');
     }
