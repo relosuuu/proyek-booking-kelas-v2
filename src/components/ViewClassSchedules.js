@@ -212,7 +212,7 @@ function ViewClassSchedules({ scenarioId }) {
 
   const lecturerSchedules = selectedLecturerId
     ? schedules.filter((schedule) =>
-        schedule.lecturer_ids.includes(selectedLecturerId)
+        Array.isArray(schedule.lecturer_ids) && schedule.lecturer_ids.includes(selectedLecturerId)
       )
     : [];
 
@@ -287,7 +287,7 @@ function ViewClassSchedules({ scenarioId }) {
             <div>
               {filteredLecturers.map((lecturer) => {
                 const lecturerHasSchedules = schedules.some((s) =>
-                  s.lecturer_ids.includes(lecturer.id)
+                  Array.isArray(s.lecturer_ids) && s.lecturer_ids.includes(lecturer.id)
                 );
                 return (
                   <button

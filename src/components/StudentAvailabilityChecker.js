@@ -50,9 +50,10 @@ function StudentAvailabilityChecker() {
   const fetchRooms = useCallback(async () => {
     try {
       const response = await getRooms();
-      setRooms(response.data);
-      parseRoomNames(response.data);
-      checkAllAvailability(response.data);
+      const roomList = Array.isArray(response.data) ? response.data : [];
+      setRooms(roomList);
+      parseRoomNames(roomList);
+      checkAllAvailability(roomList);
     } catch (err) {
       console.error('Failed to load rooms', err);
     } finally {
