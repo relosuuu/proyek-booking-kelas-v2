@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { getRooms, getRoomAvailability, createBooking, getMyBookings } from '../services/api';
 
@@ -251,14 +251,21 @@ function LecturerBooking({ lecturer_id }) {
     return room ? room.name : roomId?.substring(0, 8) + '...';
   };
 
-  const campuses = [...new Set(rooms.map((r) => {
-    const name = r.name.toUpperCase();
-    return name[0];
-  }))];
+  const campuses = useMemo(
+    () => [...new Set(rooms.map((r) => ((r.name || '').trim().toUpperCase()[0])).filter(Boolean))],
+    [rooms]
+  );
+
+  // Auto-select campus if only 1 exists and none selected yet
+  useEffect(() => {
+    if (campuses.length === 1 && !selectedCampus) {
+      setSelectedCampus(campuses[0]);
+    }
+  }, [campuses, selectedCampus]);
 
   const filteredRoomsByCampus = selectedCampus
     ? rooms.filter((r) => {
-      const name = r.name.toUpperCase();
+      const name = (r.name || '').trim().toUpperCase();
       return name[0] === selectedCampus;
     })
     : [];
@@ -276,18 +283,19 @@ function LecturerBooking({ lecturer_id }) {
 
     try {
       const roomsToCheck = selectedCampus ? filteredRoomsByCampus : rooms;
-      const available = [];
-
-      for (const room of roomsToCheck) {
-        try {
-          const response = await getRoomAvailability(room.id, parseInt(selectedJamKe), selectedDate);
-          if (response.data.is_available) {
-            available.push(room);
+      
+      const results = await Promise.all(
+        roomsToCheck.map(async (room) => {
+          try {
+            const response = await getRoomAvailability(room.id, parseInt(selectedJamKe, 10), selectedDate);
+            return response.data?.is_available ? room : null;
+          } catch {
+            return null;
           }
-        } catch (err) {
-          // Room not available
-        }
-      }
+        })
+      );
+
+      const available = results.filter(Boolean);
 
       if (available.length === 0) {
         setError('No rooms available at this time');
