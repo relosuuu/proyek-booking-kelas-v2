@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { activateScenario } from '../services/api';
 
 // ─── Reusable Confirm Modal ───────────────────────────────────────────────
 function ConfirmModal({ isOpen, title, message, confirmLabel = 'Confirm', confirmColor = '#E67E22', onConfirm, onCancel, loading }) {
@@ -119,9 +120,7 @@ function ScenarioManagement() {
     setMessage('');
     setError('');
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/scenarios/${pendingScenarioId}/activate`
-      );
+      const response = await activateScenario(pendingScenarioId);
       setMessage(response.data.message);
       await fetchScenarios();
     } catch (err) {
