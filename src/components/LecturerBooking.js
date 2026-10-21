@@ -78,6 +78,7 @@ function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel, loadin
               }
             }}
           >
+            No, Keep It
           </button>
 
           <button
@@ -549,71 +550,21 @@ function LecturerBooking({ lecturer_id }) {
       {/* Step 1: Select Date & Time Slot */}
       <div style={{
         background: 'white',
-        borderRadius: '14px',
+        borderRadius: '12px',
         padding: '28px 30px',
         marginBottom: '25px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
         border: '2px solid #E8D4C8',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-          <h2 style={{
-            fontSize: '20px',
-            color: '#1a2a4e',
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontWeight: '700',
-          }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '30px',
-              height: '30px',
-              backgroundColor: '#6B4E8A',
-              color: 'white',
-              borderRadius: '50%',
-              fontSize: '15px',
-              fontWeight: '700',
-            }}>
-              1
-            </span>
-            Select Date & Time Slot
-          </h2>
-
-          {selectedDate && selectedJamKe ? (
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              backgroundColor: '#ECFDF5',
-              color: '#065F46',
-              fontSize: '12px',
-              fontWeight: '700',
-              border: '1px solid #A7F3D0',
-            }}>
-              🟢 Live Availability Active
-            </span>
-          ) : (
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              backgroundColor: '#FFFBEB',
-              color: '#92400E',
-              fontSize: '12px',
-              fontWeight: '600',
-              border: '1px solid #FDE68A',
-            }}>
-              ⚡ Select date & time to view live room availability below
-            </span>
-          )}
-        </div>
+        <h2 style={{
+          fontSize: '20px',
+          color: '#1a2a4e',
+          marginTop: 0,
+          marginBottom: '20px',
+          fontWeight: '700',
+        }}>
+          Select Date & Time Slot
+        </h2>
 
         <div style={{
           display: 'grid',
@@ -625,13 +576,11 @@ function LecturerBooking({ lecturer_id }) {
             <label style={{
               display: 'block',
               fontSize: '13px',
-              fontWeight: '700',
+              fontWeight: '600',
               color: '#1a2a4e',
               marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
             }}>
-              📅 Date
+              Date
             </label>
             <input
               type="date"
@@ -665,13 +614,11 @@ function LecturerBooking({ lecturer_id }) {
             <label style={{
               display: 'block',
               fontSize: '13px',
-              fontWeight: '700',
+              fontWeight: '600',
               color: '#1a2a4e',
               marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
             }}>
-              🕒 Time Slot
+              Time Slot
             </label>
             <select
               value={selectedJamKe}
@@ -711,75 +658,24 @@ function LecturerBooking({ lecturer_id }) {
       {/* Step 2: Cascading Classroom Hierarchy */}
       <div style={{
         background: 'white',
-        borderRadius: '14px',
+        borderRadius: '12px',
         padding: '28px 30px',
         marginBottom: '25px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
         border: '2px solid #F4A89B',
       }}>
-        {/* Step Header & Breadcrumb Trail */}
-        <div style={{ marginBottom: '25px' }}>
+        <div style={{ marginBottom: '20px' }}>
           <h2 style={{
             fontSize: '20px',
             color: '#1a2a4e',
             margin: '0 0 8px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
             fontWeight: '700',
           }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '30px',
-              height: '30px',
-              backgroundColor: '#C5587A',
-              color: 'white',
-              borderRadius: '50%',
-              fontSize: '15px',
-              fontWeight: '700',
-            }}>
-              2
-            </span>
             Select Classroom
           </h2>
-          <p style={{ margin: 0, fontSize: '14px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
             Choose campus, then building, floor, and your desired room number.
           </p>
-
-          {/* Breadcrumb Path */}
-          <div style={{
-            marginTop: '15px',
-            padding: '10px 16px',
-            backgroundColor: '#F8FAFC',
-            borderRadius: '8px',
-            border: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '8px',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#475569',
-          }}>
-            <span style={{ color: '#64748B' }}>Path:</span>
-            <span style={{ color: selectedCampus ? '#6B4E8A' : '#94A3B8' }}>
-              🏛️ Kampus {selectedCampus || '...'}
-            </span>
-            <span>›</span>
-            <span style={{ color: selectedBuilding ? '#6B4E8A' : '#94A3B8' }}>
-              🏢 Gedung {selectedBuilding || '...'}
-            </span>
-            <span>›</span>
-            <span style={{ color: selectedFloor ? '#6B4E8A' : '#94A3B8' }}>
-              📍 Lantai {selectedFloor || '...'}
-            </span>
-            <span>›</span>
-            <span style={{ color: selectedRoom ? '#059669' : '#94A3B8', fontWeight: selectedRoom ? '700' : '600' }}>
-              🚪 {selectedRoom ? getRoomName(selectedRoom) : '...'}
-            </span>
-          </div>
         </div>
 
         {/* Level 1: Campus Selection */}
@@ -787,13 +683,11 @@ function LecturerBooking({ lecturer_id }) {
           <label style={{
             display: 'block',
             fontSize: '13px',
-            fontWeight: '700',
+            fontWeight: '600',
             color: '#1a2a4e',
             marginBottom: '10px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
           }}>
-            🏛️ Campus ({campuses.length})
+            Campus ({campuses.length})
           </label>
           <div style={{
             display: 'grid',
@@ -815,23 +709,24 @@ function LecturerBooking({ lecturer_id }) {
                   }}
                   style={{
                     padding: '14px 18px',
-                    backgroundColor: isSelected ? '#6B4E8A' : '#F8FAFC',
+                    backgroundColor: isSelected ? '#6B4E8A' : '#F5F5F5',
                     color: isSelected ? 'white' : '#1a2a4e',
-                    border: '2px solid ' + (isSelected ? '#6B4E8A' : '#E2E8F0'),
-                    borderRadius: '10px',
+                    border: '2px solid ' + (isSelected ? '#6B4E8A' : '#E8D4C8'),
+                    borderRadius: '8px',
                     cursor: 'pointer',
-                    fontWeight: '700',
-                    fontSize: '15px',
-                    transition: 'all 0.25s ease',
-                    boxShadow: isSelected ? '0 4px 12px rgba(107, 78, 138, 0.25)' : 'none',
-                    transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    transition: 'all 0.3s',
                     textAlign: 'left',
                   }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.target.style.backgroundColor = '#E8D4C8';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.target.style.backgroundColor = '#F5F5F5';
+                  }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Kampus {campus}</span>
-                    {isSelected && <span style={{ fontSize: '13px' }}>✓</span>}
-                  </div>
+                  <div>Kampus {campus}</div>
                   <div style={{
                     fontSize: '12px',
                     marginTop: '4px',
@@ -846,31 +741,22 @@ function LecturerBooking({ lecturer_id }) {
           </div>
         </div>
 
-        {/* Level 2: Building Selection (Drops down when Campus is chosen) */}
+        {/* Level 2: Building Selection */}
         {selectedCampus && (
           <div style={{
             marginBottom: '25px',
             paddingTop: '20px',
-            borderTop: '1px dashed #E2E8F0',
-            animation: 'cascadeSlideDown 0.3s ease-out',
+            borderTop: '1px solid #F0F0F0',
           }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+            <label style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: '600',
+              color: '#1a2a4e',
               marginBottom: '10px',
             }}>
-              <span style={{ color: '#6B4E8A', fontSize: '14px' }}>↳</span>
-              <label style={{
-                fontSize: '13px',
-                fontWeight: '700',
-                color: '#1a2a4e',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}>
-                🏢 Gedung di Kampus {selectedCampus} ({buildings.length})
-              </label>
-            </div>
+              Gedung di Kampus {selectedCampus} ({buildings.length})
+            </label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
@@ -892,23 +778,24 @@ function LecturerBooking({ lecturer_id }) {
                     }}
                     style={{
                       padding: '14px 18px',
-                      backgroundColor: isSelected ? '#C5587A' : '#F8FAFC',
+                      backgroundColor: isSelected ? '#C5587A' : '#F5F5F5',
                       color: isSelected ? 'white' : '#1a2a4e',
-                      border: '2px solid ' + (isSelected ? '#C5587A' : '#E2E8F0'),
-                      borderRadius: '10px',
+                      border: '2px solid ' + (isSelected ? '#C5587A' : '#E8D4C8'),
+                      borderRadius: '8px',
                       cursor: 'pointer',
-                      fontWeight: '700',
-                      fontSize: '15px',
-                      transition: 'all 0.25s ease',
-                      boxShadow: isSelected ? '0 4px 12px rgba(197, 88, 122, 0.25)' : 'none',
-                      transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      transition: 'all 0.3s',
                       textAlign: 'left',
                     }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.target.style.backgroundColor = '#E8D4C8';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.target.style.backgroundColor = '#F5F5F5';
+                    }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>Gedung {b}</span>
-                      {isSelected && <span style={{ fontSize: '13px' }}>✓</span>}
-                    </div>
+                    <div>Gedung {b}</div>
                     <div style={{
                       fontSize: '12px',
                       marginTop: '4px',
@@ -924,31 +811,22 @@ function LecturerBooking({ lecturer_id }) {
           </div>
         )}
 
-        {/* Level 3: Floor Selection (Drops down when Building is chosen) */}
+        {/* Level 3: Floor Selection */}
         {selectedBuilding && (
           <div style={{
             marginBottom: '25px',
             paddingTop: '20px',
-            borderTop: '1px dashed #E2E8F0',
-            animation: 'cascadeSlideDown 0.3s ease-out',
+            borderTop: '1px solid #F0F0F0',
           }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+            <label style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: '600',
+              color: '#1a2a4e',
               marginBottom: '10px',
             }}>
-              <span style={{ color: '#C5587A', fontSize: '14px' }}>↳</span>
-              <label style={{
-                fontSize: '13px',
-                fontWeight: '700',
-                color: '#1a2a4e',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}>
-                📍 Lantai di Gedung {selectedBuilding} ({floors.length})
-              </label>
-            </div>
+              Lantai di Gedung {selectedBuilding} ({floors.length})
+            </label>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
@@ -972,23 +850,24 @@ function LecturerBooking({ lecturer_id }) {
                     }}
                     style={{
                       padding: '12px 16px',
-                      backgroundColor: isSelected ? '#1E293B' : '#F8FAFC',
+                      backgroundColor: isSelected ? '#1E293B' : '#F5F5F5',
                       color: isSelected ? 'white' : '#1a2a4e',
-                      border: '2px solid ' + (isSelected ? '#1E293B' : '#E2E8F0'),
+                      border: '2px solid ' + (isSelected ? '#1E293B' : '#E8D4C8'),
                       borderRadius: '8px',
                       cursor: 'pointer',
-                      fontWeight: '700',
+                      fontWeight: '600',
                       fontSize: '14px',
-                      transition: 'all 0.25s ease',
-                      boxShadow: isSelected ? '0 4px 10px rgba(30, 41, 59, 0.25)' : 'none',
-                      transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      transition: 'all 0.3s',
                       textAlign: 'left',
                     }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.target.style.backgroundColor = '#E8D4C8';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.target.style.backgroundColor = '#F5F5F5';
+                    }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>Lantai {f}</span>
-                      {isSelected && <span style={{ fontSize: '12px' }}>✓</span>}
-                    </div>
+                    <div>Lantai {f}</div>
                     <div style={{
                       fontSize: '11px',
                       marginTop: '3px',
@@ -1004,12 +883,11 @@ function LecturerBooking({ lecturer_id }) {
           </div>
         )}
 
-        {/* Level 4: Room Number Selection (Drops down when Floor is chosen) */}
+        {/* Level 4: Room Number Selection */}
         {selectedFloor && (
           <div style={{
             paddingTop: '20px',
-            borderTop: '1px dashed #E2E8F0',
-            animation: 'cascadeSlideDown 0.3s ease-out',
+            borderTop: '1px solid #F0F0F0',
           }}>
             <div style={{
               display: 'flex',
@@ -1019,18 +897,13 @@ function LecturerBooking({ lecturer_id }) {
               flexWrap: 'wrap',
               gap: '8px',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: '#1E293B', fontSize: '14px' }}>↳</span>
-                <label style={{
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  color: '#1a2a4e',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}>
-                  🚪 Nomor Ruangan di Lantai {selectedFloor} ({roomsOnFloor.length})
-                </label>
-              </div>
+              <label style={{
+                fontSize: '13px',
+                fontWeight: '600',
+                color: '#1a2a4e',
+              }}>
+                Nomor Ruangan di Lantai {selectedFloor} ({roomsOnFloor.length})
+              </label>
 
               {selectedDate && selectedJamKe && (
                 <button
@@ -1042,53 +915,25 @@ function LecturerBooking({ lecturer_id }) {
                     fontSize: '12px',
                     fontWeight: '600',
                     color: '#6B4E8A',
-                    backgroundColor: '#F3E8FF',
-                    border: '1px solid #D8B4FE',
+                    backgroundColor: '#F0EBF5',
+                    border: '1px solid #E0D6EA',
                     borderRadius: '6px',
                     cursor: checkingFloorAvail ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
                   }}
                 >
-                  {checkingFloorAvail ? '⏳ Checking...' : '🔄 Recheck Status'}
+                  {checkingFloorAvail ? 'Checking...' : 'Recheck availability'}
                 </button>
               )}
             </div>
 
-            {!selectedDate || !selectedJamKe ? (
-              <div style={{
-                padding: '14px 18px',
-                backgroundColor: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '8px',
-                color: '#92400E',
+            {(!selectedDate || !selectedJamKe) && (
+              <p style={{
+                margin: '0 0 15px 0',
                 fontSize: '13px',
-                marginBottom: '15px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                color: '#999',
               }}>
-                <span>💡</span>
-                <span>Select a <strong>Date</strong> and <strong>Time Slot</strong> in Step 1 to check live room availability. You can also pick a room directly.</span>
-              </div>
-            ) : null}
-
-            {checkingFloorAvail && (
-              <div style={{
-                padding: '12px 16px',
-                backgroundColor: '#F8FAFC',
-                borderRadius: '8px',
-                marginBottom: '15px',
-                fontSize: '13px',
-                color: '#64748B',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
-                <span>Checking room availability for {selectedDate} (Jam ke-{selectedJamKe})...</span>
-              </div>
+                Pick a date and time slot above to see live room availability. You can also select a room first.
+              </p>
             )}
 
             <div style={{
@@ -1102,23 +947,22 @@ function LecturerBooking({ lecturer_id }) {
                 const isAvailable = roomAvailability[room.id] === true;
                 const isBooked = roomAvailability[room.id] === false;
 
-                // Styling logic
-                let cardBg = '#F8FAFC';
-                let cardBorder = '2px solid #E2E8F0';
+                let cardBg = '#F5F5F5';
+                let cardBorder = '2px solid #E8D4C8';
                 let textColor = '#1a2a4e';
 
                 if (isSelected) {
                   cardBg = '#6B4E8A';
-                  cardBorder = '2px solid #4C3366';
+                  cardBorder = '2px solid #6B4E8A';
                   textColor = 'white';
                 } else if (hasAvailCheck) {
                   if (isAvailable) {
-                    cardBg = '#F0FDF4';
-                    cardBorder = '2px solid #86EFAC';
+                    cardBg = '#E8F5E9';
+                    cardBorder = '2px solid #C8E6C9';
                   } else if (isBooked) {
-                    cardBg = '#FEF2F2';
-                    cardBorder = '2px solid #FECACA';
-                    textColor = '#991B1B';
+                    cardBg = '#FFEBEE';
+                    cardBorder = '2px solid #FFCDD2';
+                    textColor = '#C62828';
                   }
                 }
 
@@ -1141,25 +985,19 @@ function LecturerBooking({ lecturer_id }) {
                       borderRadius: '10px',
                       cursor: isBooked ? 'not-allowed' : 'pointer',
                       transition: 'all 0.25s ease',
-                      boxShadow: isSelected ? '0 6px 16px rgba(107, 78, 138, 0.3)' : '0 2px 6px rgba(0,0,0,0.03)',
-                      transform: isSelected ? 'scale(1.04)' : 'scale(1)',
                       textAlign: 'center',
                       opacity: isBooked && !isSelected ? 0.75 : 1,
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected && !isBooked) {
                         e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.08)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.03)';
-                      }
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: '18px', fontWeight: '700' }}>
                       {room.name}
                     </div>
 
@@ -1172,7 +1010,6 @@ function LecturerBooking({ lecturer_id }) {
                       Kapasitas: {room.capacity} org
                     </div>
 
-                    {/* Status badge */}
                     <div style={{ marginTop: '8px' }}>
                       {isSelected ? (
                         <span style={{
@@ -1184,7 +1021,7 @@ function LecturerBooking({ lecturer_id }) {
                           backgroundColor: 'rgba(255,255,255,0.25)',
                           color: 'white',
                         }}>
-                          ✓ Selected
+                          Selected
                         </span>
                       ) : hasAvailCheck ? (
                         isAvailable ? (
@@ -1194,10 +1031,10 @@ function LecturerBooking({ lecturer_id }) {
                             borderRadius: '12px',
                             fontSize: '11px',
                             fontWeight: '700',
-                            backgroundColor: '#DCFCE7',
-                            color: '#166534',
+                            backgroundColor: '#C8E6C9',
+                            color: '#2E7D32',
                           }}>
-                            🟢 Tersedia
+                            Tersedia
                           </span>
                         ) : (
                           <span style={{
@@ -1206,10 +1043,10 @@ function LecturerBooking({ lecturer_id }) {
                             borderRadius: '12px',
                             fontSize: '11px',
                             fontWeight: '700',
-                            backgroundColor: '#FEE2E2',
-                            color: '#991B1B',
+                            backgroundColor: '#FFCDD2',
+                            color: '#C62828',
                           }}>
-                            🔴 Penuh
+                            Penuh
                           </span>
                         )
                       ) : (
@@ -1219,8 +1056,8 @@ function LecturerBooking({ lecturer_id }) {
                           borderRadius: '12px',
                           fontSize: '11px',
                           fontWeight: '600',
-                          backgroundColor: '#E2E8F0',
-                          color: '#475569',
+                          backgroundColor: '#E8D4C8',
+                          color: '#6B4E8A',
                         }}>
                           Pilih Ruang
                         </span>
@@ -1234,23 +1071,22 @@ function LecturerBooking({ lecturer_id }) {
         )}
       </div>
 
-      {/* Step 3: Booking Confirmation Panel (Appears when room is selected) */}
+      {/* Step 3: Booking Confirmation Panel */}
       {selectedRoom && (
         <div style={{
-          background: 'linear-gradient(135deg, #FAF5FF 0%, #FFF1F2 100%)',
-          borderRadius: '14px',
+          background: 'white',
+          borderRadius: '12px',
           padding: '24px 28px',
           marginBottom: '25px',
-          boxShadow: '0 8px 24px rgba(107, 78, 138, 0.12)',
-          border: '2px solid #D8B4FE',
-          animation: 'cascadeSlideDown 0.3s ease-out',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+          border: '2px solid #E8D4C8',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
             <div>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#6B4E8A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Ready to Confirm Booking
               </div>
-              <h3 style={{ fontSize: '24px', color: '#1a2a4e', margin: '4px 0 0 0', fontWeight: '800' }}>
+              <h3 style={{ fontSize: '24px', color: '#1a2a4e', margin: '4px 0 0 0', fontWeight: '700' }}>
                 Ruang {getRoomName(selectedRoom)}
               </h3>
             </div>
@@ -1261,9 +1097,9 @@ function LecturerBooking({ lecturer_id }) {
               style={{
                 padding: '6px 12px',
                 backgroundColor: 'transparent',
-                border: '1px solid #CBD5E1',
+                border: '1px solid #E8D4C8',
                 borderRadius: '6px',
-                color: '#64748B',
+                color: '#6B4E8A',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
@@ -1279,24 +1115,24 @@ function LecturerBooking({ lecturer_id }) {
             gap: '12px',
             marginBottom: '22px',
           }}>
-            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+            <div style={{ backgroundColor: '#FAFAFA', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E8D4C8' }}>
               <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>LOKASI</div>
               <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
-                Kampus {selectedCampus} • Gedung {selectedBuilding} • Lt. {selectedFloor}
+                Kampus {selectedCampus} &middot; Gedung {selectedBuilding} &middot; Lt. {selectedFloor}
               </div>
             </div>
 
-            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+            <div style={{ backgroundColor: '#FAFAFA', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E8D4C8' }}>
               <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>TANGGAL</div>
               <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
-                {selectedDate || <span style={{ color: '#EF4444' }}>Belum dipilih</span>}
+                {selectedDate || <span style={{ color: '#C62828' }}>Belum dipilih</span>}
               </div>
             </div>
 
-            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+            <div style={{ backgroundColor: '#FAFAFA', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E8D4C8' }}>
               <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>WAKTU PERKULIAHAN</div>
               <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
-                {selectedJamKe ? `Jam ke-${selectedJamKe} (${jamKeNames[selectedJamKe] || ''})` : <span style={{ color: '#EF4444' }}>Belum dipilih</span>}
+                {selectedJamKe ? `Jam ke-${selectedJamKe} (${jamKeNames[selectedJamKe] || ''})` : <span style={{ color: '#C62828' }}>Belum dipilih</span>}
               </div>
             </div>
           </div>
@@ -1307,45 +1143,28 @@ function LecturerBooking({ lecturer_id }) {
             disabled={loading || !selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false}
             style={{
               width: '100%',
-              padding: '16px',
-              backgroundColor: (!selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false) ? '#94A3B8' : '#6B4E8A',
+              padding: '14px',
+              backgroundColor: (!selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false) ? '#DDD' : '#6B4E8A',
               color: 'white',
               border: 'none',
-              borderRadius: '10px',
+              borderRadius: '8px',
               cursor: (!selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false || loading) ? 'not-allowed' : 'pointer',
               fontSize: '16px',
-              fontWeight: '700',
-              transition: 'all 0.25s ease',
-              boxShadow: (!selectedDate || !selectedJamKe) ? 'none' : '0 4px 14px rgba(107, 78, 138, 0.35)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
+              fontWeight: '600',
+              transition: 'background-color 0.3s',
             }}
             onMouseEnter={(e) => {
               if (selectedDate && selectedJamKe && roomAvailability[selectedRoom] !== false && !loading) {
-                e.currentTarget.style.backgroundColor = '#583C74';
-                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.backgroundColor = '#5A3E76';
               }
             }}
             onMouseLeave={(e) => {
               if (selectedDate && selectedJamKe && roomAvailability[selectedRoom] !== false && !loading) {
                 e.currentTarget.style.backgroundColor = '#6B4E8A';
-                e.currentTarget.style.transform = 'translateY(0)';
               }
             }}
           >
-            {loading ? (
-              <>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
-                <span>Memproses Booking...</span>
-              </>
-            ) : (
-              <>
-                <span>Confirm Booking for Ruang {getRoomName(selectedRoom)}</span>
-                <span>➔</span>
-              </>
-            )}
+            {loading ? 'Please wait...' : `Confirm Booking for Ruang ${getRoomName(selectedRoom)}`}
           </button>
         </div>
       )}
@@ -1406,9 +1225,6 @@ function LecturerBooking({ lecturer_id }) {
             color: '#1a2a4e',
             margin: 0,
             fontWeight: '700',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
           }}>
             My Bookings
           </h2>
@@ -1425,18 +1241,16 @@ function LecturerBooking({ lecturer_id }) {
               cursor: loadingBookings ? 'not-allowed' : 'pointer',
               fontSize: '13px',
               fontWeight: '600',
-              transition: 'background-color 0.3s, transform 0.2s',
+              transition: 'background-color 0.3s',
             }}
             onMouseEnter={(e) => {
               if (!loadingBookings) {
                 e.target.style.backgroundColor = '#5A3E76';
-                e.target.style.transform = 'translateY(-1px)';
               }
             }}
             onMouseLeave={(e) => {
               if (!loadingBookings) {
                 e.target.style.backgroundColor = '#6B4E8A';
-                e.target.style.transform = 'translateY(0)';
               }
             }}
           >
@@ -1733,16 +1547,6 @@ function LecturerBooking({ lecturer_id }) {
           from {
             opacity: 0;
             transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes cascadeSlideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
           }
           to {
             opacity: 1;
