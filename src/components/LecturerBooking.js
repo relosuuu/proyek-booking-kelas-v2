@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { getRooms, getRoomAvailability, createBooking, getMyBookings } from '../services/api';
+import { getTodayDate, JAM_KE_RANGES } from '../services/timeUtils';
 
 // Custom Confirmation Modal
 function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel, loading }) {
@@ -77,7 +78,6 @@ function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel, loadin
               }
             }}
           >
-            No, Keep It
           </button>
 
           <button
@@ -129,13 +129,15 @@ function ConfirmationModal({ isOpen, title, message, onConfirm, onCancel, loadin
 
 function LecturerBooking({ lecturer_id }) {
   const [rooms, setRooms] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedJamKe, setSelectedJamKe] = useState('');
-  const [availableRooms, setAvailableRooms] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState('');
   const [selectedCampus, setSelectedCampus] = useState(null);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [selectedFloor, setSelectedFloor] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [selectedJamKe, setSelectedJamKe] = useState('');
+  const [roomAvailability, setRoomAvailability] = useState({});
+  const [checkingFloorAvail, setCheckingFloorAvail] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -251,10 +253,55 @@ function LecturerBooking({ lecturer_id }) {
     return room ? room.name : roomId?.substring(0, 8) + '...';
   };
 
-  const campuses = useMemo(
-    () => [...new Set(rooms.map((r) => ((r.name || '').trim().toUpperCase()[0])).filter(Boolean))],
-    [rooms]
-  );
+  // Parse room names into campus, building, floor, class number
+  const parseRoomName = useCallback((name) => {
+    const clean = (name || '').trim().toUpperCase();
+    const match = clean.match(/^([A-Z]+)[-_ ]?(\d)[-_ ]?(\d)(.*)$/);
+    if (match) {
+      return {
+        campus: match[1],
+        building: match[2],
+        floor: match[3],
+        classNum: match[4] || clean.substring(3),
+        fullName: clean,
+      };
+    }
+    return {
+      campus: clean[0] || 'D',
+      building: clean[1] || '1',
+      floor: clean[2] || '1',
+      classNum: clean.substring(3) || '01',
+      fullName: clean,
+    };
+  }, []);
+
+  // Deduplicate rooms by name
+  const uniqueRooms = useMemo(() => {
+    const seen = new Map();
+    rooms.forEach((r) => {
+      const name = (r.name || '').trim().toUpperCase();
+      if (!name) return;
+      if (!seen.has(name)) {
+        seen.set(name, r);
+      }
+    });
+    return Array.from(seen.values());
+  }, [rooms]);
+
+  // Map of room details
+  const roomDetails = useMemo(() => {
+    const details = {};
+    uniqueRooms.forEach((r) => {
+      details[r.id] = parseRoomName(r.name);
+    });
+    return details;
+  }, [uniqueRooms, parseRoomName]);
+
+  // Unique campuses
+  const campuses = useMemo(() => {
+    const list = [...new Set(Object.values(roomDetails).map((d) => d.campus).filter(Boolean))];
+    return list.sort();
+  }, [roomDetails]);
 
   // Auto-select campus if only 1 exists and none selected yet
   useEffect(() => {
@@ -263,64 +310,116 @@ function LecturerBooking({ lecturer_id }) {
     }
   }, [campuses, selectedCampus]);
 
-  const filteredRoomsByCampus = selectedCampus
-    ? rooms.filter((r) => {
-      const name = (r.name || '').trim().toUpperCase();
-      return name[0] === selectedCampus;
-    })
-    : [];
+  // Buildings for selected campus
+  const buildings = useMemo(() => {
+    if (!selectedCampus) return [];
+    const list = [
+      ...new Set(
+        Object.values(roomDetails)
+          .filter((d) => d.campus === selectedCampus)
+          .map((d) => d.building)
+          .filter(Boolean)
+      ),
+    ];
+    return list.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  }, [selectedCampus, roomDetails]);
 
-  const handleCheckAvailability = async () => {
-    if (!selectedDate || !selectedJamKe) {
-      setError('Please select both date and time slot');
-      return;
-    }
+  // Floors for selected building
+  const floors = useMemo(() => {
+    if (!selectedCampus || !selectedBuilding) return [];
+    const list = [
+      ...new Set(
+        Object.values(roomDetails)
+          .filter((d) => d.campus === selectedCampus && d.building === selectedBuilding)
+          .map((d) => d.floor)
+          .filter(Boolean)
+      ),
+    ];
+    return list.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  }, [selectedCampus, selectedBuilding, roomDetails]);
 
-    setCheckingAvailability(true);
-    setError('');
-    setAvailableRooms([]);
-    setSelectedRoom('');
+  // Rooms on selected floor
+  const roomsOnFloor = useMemo(() => {
+    if (!selectedCampus || !selectedBuilding || !selectedFloor) return [];
+    return uniqueRooms
+      .filter((r) => {
+        const d = roomDetails[r.id];
+        return (
+          d &&
+          d.campus === selectedCampus &&
+          d.building === selectedBuilding &&
+          d.floor === selectedFloor
+        );
+      })
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true }));
+  }, [selectedCampus, selectedBuilding, selectedFloor, uniqueRooms, roomDetails]);
 
+  // Check availability for rooms on active floor
+  const checkFloorAvailability = useCallback(async (targetRooms, date, jam) => {
+    if (!targetRooms || targetRooms.length === 0 || !date || !jam) return;
+    setCheckingFloorAvail(true);
     try {
-      const roomsToCheck = selectedCampus ? filteredRoomsByCampus : rooms;
-      
       const results = await Promise.all(
-        roomsToCheck.map(async (room) => {
+        targetRooms.map(async (room) => {
           try {
-            const response = await getRoomAvailability(room.id, parseInt(selectedJamKe, 10), selectedDate);
-            return response.data?.is_available ? room : null;
+            const res = await getRoomAvailability(room.id, parseInt(jam, 10), date);
+            return { id: room.id, is_available: !!res.data?.is_available };
           } catch {
-            return null;
+            return { id: room.id, is_available: false };
           }
         })
       );
-
-      const available = results.filter(Boolean);
-
-      if (available.length === 0) {
-        setError('No rooms available at this time');
-      }
-      setAvailableRooms(available);
-    } catch (err) {
-      setError('Failed to check availability');
+      setRoomAvailability((prev) => {
+        const next = { ...prev };
+        results.forEach((r) => {
+          next[r.id] = r.is_available;
+        });
+        return next;
+      });
     } finally {
-      setCheckingAvailability(false);
+      setCheckingFloorAvail(false);
     }
-  };
+  }, []);
+
+  // Automatically check availability when rooms on floor, date, or jamKe change
+  useEffect(() => {
+    if (roomsOnFloor.length > 0 && selectedDate && selectedJamKe) {
+      checkFloorAvailability(roomsOnFloor, selectedDate, selectedJamKe);
+    }
+  }, [roomsOnFloor, selectedDate, selectedJamKe, checkFloorAvailability]);
+
+  // Clear selected room if it becomes unavailable when date or jamKe changes
+  useEffect(() => {
+    if (selectedRoom && roomAvailability[selectedRoom] === false) {
+      setSelectedRoom('');
+    }
+  }, [roomAvailability, selectedRoom]);
 
   const handleBook = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (!selectedRoom || !selectedDate || !selectedJamKe) {
+      setError('Please select Date, Time Slot, and an available Room.');
+      return;
+    }
+
+    if (roomAvailability[selectedRoom] === false) {
+      setError('Selected room is already booked for this time slot. Please choose another room.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
     setError('');
 
     try {
-      await createBooking(lecturer_id, selectedRoom, parseInt(selectedJamKe), selectedDate, 'extra');
-      setMessage('Booking created successfully');
-      setSelectedDate('');
-      setSelectedJamKe('');
-      setAvailableRooms([]);
+      await createBooking(lecturer_id, selectedRoom, parseInt(selectedJamKe, 10), selectedDate, 'extra');
+      const bookedRoomName = getRoomName(selectedRoom);
+      setMessage(`Booking created successfully for ${bookedRoomName} on ${selectedDate} (Jam ke-${selectedJamKe})!`);
       setSelectedRoom('');
+      // Refresh availability for the floor
+      if (roomsOnFloor.length > 0) {
+        checkFloorAvailability(roomsOnFloor, selectedDate, selectedJamKe);
+      }
       fetchMyBookings();
     } catch (err) {
       setError(err.response?.data?.error || 'Booking failed');
@@ -376,7 +475,7 @@ function LecturerBooking({ lecturer_id }) {
     return bookingDate < twoWeeksAgo;
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayDate();
 
   const jamKeNames = {
     1: '07:30 - 08:30',
@@ -447,101 +546,92 @@ function LecturerBooking({ lecturer_id }) {
         </p>
       </div>
 
-      {/* Campus Filter */}
+      {/* Step 1: Select Date & Time Slot */}
       <div style={{
         background: 'white',
-        borderRadius: '12px',
-        padding: '30px',
-        marginBottom: '30px',
-        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
-        border: '2px solid #F4A89B',
-      }}>
-        <h2 style={{
-          fontSize: '20px',
-          color: '#1a2a4e',
-          marginTop: 0,
-          marginBottom: '25px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          Select Campus
-        </h2>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: '12px',
-        }}>
-          {campuses.map((campus) => (
-            <button
-              key={campus}
-              onClick={() => setSelectedCampus(campus)}
-              style={{
-                padding: '12px 20px',
-                backgroundColor: selectedCampus === campus ? '#C5587A' : '#F5F5F5',
-                color: selectedCampus === campus ? 'white' : '#1a2a4e',
-                border: '2px solid ' + (selectedCampus === campus ? '#C5587A' : '#E8D4C8'),
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '14px',
-                transition: 'all 0.3s',
-              }}
-              onMouseEnter={(e) => {
-                if (selectedCampus !== campus) {
-                  e.target.style.backgroundColor = '#E8D4C8';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedCampus !== campus) {
-                  e.target.style.backgroundColor = '#F5F5F5';
-                }
-              }}
-            >
-              Campus {campus}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Step 1: Select Date & Time */}
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '30px',
-        marginBottom: '30px',
-        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+        borderRadius: '14px',
+        padding: '28px 30px',
+        marginBottom: '25px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
         border: '2px solid #E8D4C8',
       }}>
-        <h2 style={{
-          fontSize: '20px',
-          color: '#1a2a4e',
-          marginTop: 0,
-          marginBottom: '25px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          Select Date & Time Slot
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+          <h2 style={{
+            fontSize: '20px',
+            color: '#1a2a4e',
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: '700',
+          }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '30px',
+              height: '30px',
+              backgroundColor: '#6B4E8A',
+              color: 'white',
+              borderRadius: '50%',
+              fontSize: '15px',
+              fontWeight: '700',
+            }}>
+              1
+            </span>
+            Select Date & Time Slot
+          </h2>
+
+          {selectedDate && selectedJamKe ? (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              backgroundColor: '#ECFDF5',
+              color: '#065F46',
+              fontSize: '12px',
+              fontWeight: '700',
+              border: '1px solid #A7F3D0',
+            }}>
+              🟢 Live Availability Active
+            </span>
+          ) : (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              backgroundColor: '#FFFBEB',
+              color: '#92400E',
+              fontSize: '12px',
+              fontWeight: '600',
+              border: '1px solid #FDE68A',
+            }}>
+              ⚡ Select date & time to view live room availability below
+            </span>
+          )}
+        </div>
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           gap: '20px',
-          marginBottom: '25px',
         }}>
           {/* Date Input */}
           <div>
             <label style={{
               display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
+              fontSize: '13px',
+              fontWeight: '700',
               color: '#1a2a4e',
               marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}>
-              Date
+              📅 Date
             </label>
             <input
               type="date"
@@ -550,13 +640,14 @@ function LecturerBooking({ lecturer_id }) {
               min={today}
               style={{
                 width: '100%',
-                padding: '12px 15px',
+                padding: '12px 14px',
                 fontSize: '14px',
                 border: '2px solid #E8D4C8',
                 borderRadius: '8px',
                 boxSizing: 'border-box',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
+                transition: 'all 0.3s',
                 outline: 'none',
+                backgroundColor: 'white',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#6B4E8A';
@@ -573,24 +664,26 @@ function LecturerBooking({ lecturer_id }) {
           <div>
             <label style={{
               display: 'block',
-              fontSize: '14px',
-              fontWeight: '600',
+              fontSize: '13px',
+              fontWeight: '700',
               color: '#1a2a4e',
               marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}>
-              Time Slot
+              🕒 Time Slot
             </label>
             <select
               value={selectedJamKe}
               onChange={(e) => setSelectedJamKe(e.target.value)}
               style={{
                 width: '100%',
-                padding: '12px 15px',
+                padding: '12px 14px',
                 fontSize: '14px',
                 border: '2px solid #E8D4C8',
                 borderRadius: '8px',
                 boxSizing: 'border-box',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
+                transition: 'all 0.3s',
                 outline: 'none',
                 backgroundColor: 'white',
                 cursor: 'pointer',
@@ -605,161 +698,656 @@ function LecturerBooking({ lecturer_id }) {
               }}
             >
               <option value="">-- Choose time slot --</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slot) => (
-                <option key={slot} value={slot}>
-                  Jam ke-{slot} ({jamKeNames[slot]})
+              {JAM_KE_RANGES.map((slot) => (
+                <option key={slot.jamKe} value={slot.jamKe}>
+                  Jam ke-{slot.jamKe} ({slot.label})
                 </option>
               ))}
             </select>
           </div>
         </div>
-
-        <button
-          onClick={handleCheckAvailability}
-          disabled={checkingAvailability || !selectedDate || !selectedJamKe}
-          style={{
-            width: '100%',
-            padding: '14px',
-            backgroundColor: !selectedDate || !selectedJamKe ? '#DDD' : '#6B4E8A',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: (!selectedDate || !selectedJamKe) ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            fontWeight: '600',
-            transition: 'background-color 0.3s, transform 0.2s',
-            opacity: checkingAvailability ? 0.8 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (selectedDate && selectedJamKe) {
-              e.target.style.backgroundColor = '#5A3E76';
-              e.target.style.transform = 'translateY(-2px)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectedDate && selectedJamKe) {
-              e.target.style.backgroundColor = '#6B4E8A';
-              e.target.style.transform = 'translateY(0)';
-            }
-          }}
-        >
-          {checkingAvailability ? 'Checking...' : 'Check Available Rooms'}
-        </button>
       </div>
 
-      {/* Step 2: Select Room */}
-      {availableRooms.length > 0 && (
-        <form onSubmit={handleBook} style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '30px',
-          marginBottom: '30px',
-          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
-          border: '2px solid #e9e6e5',
-        }}>
+      {/* Step 2: Cascading Classroom Hierarchy */}
+      <div style={{
+        background: 'white',
+        borderRadius: '14px',
+        padding: '28px 30px',
+        marginBottom: '25px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+        border: '2px solid #F4A89B',
+      }}>
+        {/* Step Header & Breadcrumb Trail */}
+        <div style={{ marginBottom: '25px' }}>
           <h2 style={{
             fontSize: '20px',
             color: '#1a2a4e',
-            marginTop: 0,
-            marginBottom: '25px',
+            margin: '0 0 8px 0',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
+            fontWeight: '700',
           }}>
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
-              height: '32px',
+              width: '30px',
+              height: '30px',
               backgroundColor: '#C5587A',
               color: 'white',
               borderRadius: '50%',
-              fontSize: '18px',
+              fontSize: '15px',
               fontWeight: '700',
             }}>
               2
             </span>
-            Available Rooms
+            Select Classroom
           </h2>
+          <p style={{ margin: 0, fontSize: '14px', color: '#64748B' }}>
+            Choose campus, then building, floor, and your desired room number.
+          </p>
+
+          {/* Breadcrumb Path */}
+          <div style={{
+            marginTop: '15px',
+            padding: '10px 16px',
+            backgroundColor: '#F8FAFC',
+            borderRadius: '8px',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#475569',
+          }}>
+            <span style={{ color: '#64748B' }}>Path:</span>
+            <span style={{ color: selectedCampus ? '#6B4E8A' : '#94A3B8' }}>
+              🏛️ Kampus {selectedCampus || '...'}
+            </span>
+            <span>›</span>
+            <span style={{ color: selectedBuilding ? '#6B4E8A' : '#94A3B8' }}>
+              🏢 Gedung {selectedBuilding || '...'}
+            </span>
+            <span>›</span>
+            <span style={{ color: selectedFloor ? '#6B4E8A' : '#94A3B8' }}>
+              📍 Lantai {selectedFloor || '...'}
+            </span>
+            <span>›</span>
+            <span style={{ color: selectedRoom ? '#059669' : '#94A3B8', fontWeight: selectedRoom ? '700' : '600' }}>
+              🚪 {selectedRoom ? getRoomName(selectedRoom) : '...'}
+            </span>
+          </div>
+        </div>
+
+        {/* Level 1: Campus Selection */}
+        <div style={{ marginBottom: '25px' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '13px',
+            fontWeight: '700',
+            color: '#1a2a4e',
+            marginBottom: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            🏛️ Campus ({campuses.length})
+          </label>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '12px',
+          }}>
+            {campuses.map((campus) => {
+              const count = Object.values(roomDetails).filter((d) => d.campus === campus).length;
+              const isSelected = selectedCampus === campus;
+              return (
+                <button
+                  key={campus}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCampus(campus);
+                    setSelectedBuilding(null);
+                    setSelectedFloor(null);
+                    setSelectedRoom('');
+                  }}
+                  style={{
+                    padding: '14px 18px',
+                    backgroundColor: isSelected ? '#6B4E8A' : '#F8FAFC',
+                    color: isSelected ? 'white' : '#1a2a4e',
+                    border: '2px solid ' + (isSelected ? '#6B4E8A' : '#E2E8F0'),
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    fontSize: '15px',
+                    transition: 'all 0.25s ease',
+                    boxShadow: isSelected ? '0 4px 12px rgba(107, 78, 138, 0.25)' : 'none',
+                    transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Kampus {campus}</span>
+                    {isSelected && <span style={{ fontSize: '13px' }}>✓</span>}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    marginTop: '4px',
+                    opacity: isSelected ? 0.9 : 0.6,
+                    fontWeight: '500',
+                  }}>
+                    {count} Ruangan
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Level 2: Building Selection (Drops down when Campus is chosen) */}
+        {selectedCampus && (
+          <div style={{
+            marginBottom: '25px',
+            paddingTop: '20px',
+            borderTop: '1px dashed #E2E8F0',
+            animation: 'cascadeSlideDown 0.3s ease-out',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '10px',
+            }}>
+              <span style={{ color: '#6B4E8A', fontSize: '14px' }}>↳</span>
+              <label style={{
+                fontSize: '13px',
+                fontWeight: '700',
+                color: '#1a2a4e',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                🏢 Gedung di Kampus {selectedCampus} ({buildings.length})
+              </label>
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '12px',
+            }}>
+              {buildings.map((b) => {
+                const bRooms = uniqueRooms.filter(
+                  (r) => roomDetails[r.id]?.campus === selectedCampus && roomDetails[r.id]?.building === b
+                );
+                const isSelected = selectedBuilding === b;
+                return (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => {
+                      setSelectedBuilding(b);
+                      setSelectedFloor(null);
+                      setSelectedRoom('');
+                    }}
+                    style={{
+                      padding: '14px 18px',
+                      backgroundColor: isSelected ? '#C5587A' : '#F8FAFC',
+                      color: isSelected ? 'white' : '#1a2a4e',
+                      border: '2px solid ' + (isSelected ? '#C5587A' : '#E2E8F0'),
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      fontWeight: '700',
+                      fontSize: '15px',
+                      transition: 'all 0.25s ease',
+                      boxShadow: isSelected ? '0 4px 12px rgba(197, 88, 122, 0.25)' : 'none',
+                      transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Gedung {b}</span>
+                      {isSelected && <span style={{ fontSize: '13px' }}>✓</span>}
+                    </div>
+                    <div style={{
+                      fontSize: '12px',
+                      marginTop: '4px',
+                      opacity: isSelected ? 0.9 : 0.6,
+                      fontWeight: '500',
+                    }}>
+                      {bRooms.length} Ruangan
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Level 3: Floor Selection (Drops down when Building is chosen) */}
+        {selectedBuilding && (
+          <div style={{
+            marginBottom: '25px',
+            paddingTop: '20px',
+            borderTop: '1px dashed #E2E8F0',
+            animation: 'cascadeSlideDown 0.3s ease-out',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '10px',
+            }}>
+              <span style={{ color: '#C5587A', fontSize: '14px' }}>↳</span>
+              <label style={{
+                fontSize: '13px',
+                fontWeight: '700',
+                color: '#1a2a4e',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                📍 Lantai di Gedung {selectedBuilding} ({floors.length})
+              </label>
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '10px',
+            }}>
+              {floors.map((f) => {
+                const fRooms = uniqueRooms.filter(
+                  (r) =>
+                    roomDetails[r.id]?.campus === selectedCampus &&
+                    roomDetails[r.id]?.building === selectedBuilding &&
+                    roomDetails[r.id]?.floor === f
+                );
+                const isSelected = selectedFloor === f;
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => {
+                      setSelectedFloor(f);
+                      setSelectedRoom('');
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      backgroundColor: isSelected ? '#1E293B' : '#F8FAFC',
+                      color: isSelected ? 'white' : '#1a2a4e',
+                      border: '2px solid ' + (isSelected ? '#1E293B' : '#E2E8F0'),
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      transition: 'all 0.25s ease',
+                      boxShadow: isSelected ? '0 4px 10px rgba(30, 41, 59, 0.25)' : 'none',
+                      transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Lantai {f}</span>
+                      {isSelected && <span style={{ fontSize: '12px' }}>✓</span>}
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      marginTop: '3px',
+                      opacity: isSelected ? 0.9 : 0.6,
+                      fontWeight: '500',
+                    }}>
+                      {fRooms.length} Kelas
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Level 4: Room Number Selection (Drops down when Floor is chosen) */}
+        {selectedFloor && (
+          <div style={{
+            paddingTop: '20px',
+            borderTop: '1px dashed #E2E8F0',
+            animation: 'cascadeSlideDown 0.3s ease-out',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '12px',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#1E293B', fontSize: '14px' }}>↳</span>
+                <label style={{
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  color: '#1a2a4e',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  🚪 Nomor Ruangan di Lantai {selectedFloor} ({roomsOnFloor.length})
+                </label>
+              </div>
+
+              {selectedDate && selectedJamKe && (
+                <button
+                  type="button"
+                  onClick={() => checkFloorAvailability(roomsOnFloor, selectedDate, selectedJamKe)}
+                  disabled={checkingFloorAvail}
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#6B4E8A',
+                    backgroundColor: '#F3E8FF',
+                    border: '1px solid #D8B4FE',
+                    borderRadius: '6px',
+                    cursor: checkingFloorAvail ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  {checkingFloorAvail ? '⏳ Checking...' : '🔄 Recheck Status'}
+                </button>
+              )}
+            </div>
+
+            {!selectedDate || !selectedJamKe ? (
+              <div style={{
+                padding: '14px 18px',
+                backgroundColor: '#FFFBEB',
+                border: '1px solid #FDE68A',
+                borderRadius: '8px',
+                color: '#92400E',
+                fontSize: '13px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <span>💡</span>
+                <span>Select a <strong>Date</strong> and <strong>Time Slot</strong> in Step 1 to check live room availability. You can also pick a room directly.</span>
+              </div>
+            ) : null}
+
+            {checkingFloorAvail && (
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: '#F8FAFC',
+                borderRadius: '8px',
+                marginBottom: '15px',
+                fontSize: '13px',
+                color: '#64748B',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+                <span>Checking room availability for {selectedDate} (Jam ke-{selectedJamKe})...</span>
+              </div>
+            )}
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+            }}>
+              {roomsOnFloor.map((room) => {
+                const isSelected = selectedRoom === room.id;
+                const hasAvailCheck = selectedDate && selectedJamKe && roomAvailability[room.id] !== undefined;
+                const isAvailable = roomAvailability[room.id] === true;
+                const isBooked = roomAvailability[room.id] === false;
+
+                // Styling logic
+                let cardBg = '#F8FAFC';
+                let cardBorder = '2px solid #E2E8F0';
+                let textColor = '#1a2a4e';
+
+                if (isSelected) {
+                  cardBg = '#6B4E8A';
+                  cardBorder = '2px solid #4C3366';
+                  textColor = 'white';
+                } else if (hasAvailCheck) {
+                  if (isAvailable) {
+                    cardBg = '#F0FDF4';
+                    cardBorder = '2px solid #86EFAC';
+                  } else if (isBooked) {
+                    cardBg = '#FEF2F2';
+                    cardBorder = '2px solid #FECACA';
+                    textColor = '#991B1B';
+                  }
+                }
+
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => {
+                      if (hasAvailCheck && isBooked) {
+                        setError(`Ruangan ${room.name} is already booked for Jam ke-${selectedJamKe}. Please choose an available room.`);
+                        return;
+                      }
+                      setSelectedRoom(isSelected ? '' : room.id);
+                    }}
+                    style={{
+                      padding: '16px 14px',
+                      backgroundColor: cardBg,
+                      color: textColor,
+                      border: cardBorder,
+                      borderRadius: '10px',
+                      cursor: isBooked ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.25s ease',
+                      boxShadow: isSelected ? '0 6px 16px rgba(107, 78, 138, 0.3)' : '0 2px 6px rgba(0,0,0,0.03)',
+                      transform: isSelected ? 'scale(1.04)' : 'scale(1)',
+                      textAlign: 'center',
+                      opacity: isBooked && !isSelected ? 0.75 : 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected && !isBooked) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.08)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.03)';
+                      }
+                    }}
+                  >
+                    <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                      {room.name}
+                    </div>
+
+                    <div style={{
+                      fontSize: '11px',
+                      marginTop: '4px',
+                      opacity: isSelected ? 0.9 : 0.7,
+                      fontWeight: '500',
+                    }}>
+                      Kapasitas: {room.capacity} org
+                    </div>
+
+                    {/* Status badge */}
+                    <div style={{ marginTop: '8px' }}>
+                      {isSelected ? (
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          backgroundColor: 'rgba(255,255,255,0.25)',
+                          color: 'white',
+                        }}>
+                          ✓ Selected
+                        </span>
+                      ) : hasAvailCheck ? (
+                        isAvailable ? (
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            backgroundColor: '#DCFCE7',
+                            color: '#166534',
+                          }}>
+                            🟢 Tersedia
+                          </span>
+                        ) : (
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            backgroundColor: '#FEE2E2',
+                            color: '#991B1B',
+                          }}>
+                            🔴 Penuh
+                          </span>
+                        )
+                      ) : (
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          backgroundColor: '#E2E8F0',
+                          color: '#475569',
+                        }}>
+                          Pilih Ruang
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Step 3: Booking Confirmation Panel (Appears when room is selected) */}
+      {selectedRoom && (
+        <div style={{
+          background: 'linear-gradient(135deg, #FAF5FF 0%, #FFF1F2 100%)',
+          borderRadius: '14px',
+          padding: '24px 28px',
+          marginBottom: '25px',
+          boxShadow: '0 8px 24px rgba(107, 78, 138, 0.12)',
+          border: '2px solid #D8B4FE',
+          animation: 'cascadeSlideDown 0.3s ease-out',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#6B4E8A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Ready to Confirm Booking
+              </div>
+              <h3 style={{ fontSize: '24px', color: '#1a2a4e', margin: '4px 0 0 0', fontWeight: '800' }}>
+                Ruang {getRoomName(selectedRoom)}
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRoom('')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: 'transparent',
+                border: '1px solid #CBD5E1',
+                borderRadius: '6px',
+                color: '#64748B',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '600',
+              }}
+            >
+              Change Room
+            </button>
+          </div>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '15px',
-            marginBottom: '25px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            marginBottom: '22px',
           }}>
-            {availableRooms.map((room) => (
-              <button
-                key={room.id}
-                type="button"
-                onClick={() => setSelectedRoom(room.id)}
-                style={{
-                  padding: '18px 15px',
-                  backgroundColor: selectedRoom === room.id ? '#C5587A' : '#F4A89B',
-                  color: 'white',
-                  border: selectedRoom === room.id ? '3px solid #A8456F' : '2px solid #F4A89B',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'all 0.3s',
-                  transform: selectedRoom === room.id ? 'scale(1.05)' : 'scale(1)',
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedRoom !== room.id) {
-                    e.target.style.backgroundColor = '#E8947F';
-                    e.target.style.transform = 'translateY(-4px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedRoom !== room.id) {
-                    e.target.style.backgroundColor = '#F4A89B';
-                    e.target.style.transform = 'translateY(0)';
-                  }
-                }}
-              >
-                <div style={{ fontWeight: '700' }}>{room.name}</div>
-                <div style={{ fontSize: '12px', opacity: 0.9 }}>
-                  Capacity: {room.capacity}
-                </div>
-                {selectedRoom === room.id && <div style={{ marginTop: '8px' }}>Selected</div>}
-              </button>
-            ))}
+            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+              <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>LOKASI</div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
+                Kampus {selectedCampus} • Gedung {selectedBuilding} • Lt. {selectedFloor}
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+              <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>TANGGAL</div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
+                {selectedDate || <span style={{ color: '#EF4444' }}>Belum dipilih</span>}
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: 'white', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E9D5FF' }}>
+              <div style={{ fontSize: '11px', color: '#6B4E8A', fontWeight: '600' }}>WAKTU PERKULIAHAN</div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#1a2a4e', marginTop: '2px' }}>
+                {selectedJamKe ? `Jam ke-${selectedJamKe} (${jamKeNames[selectedJamKe] || ''})` : <span style={{ color: '#EF4444' }}>Belum dipilih</span>}
+              </div>
+            </div>
           </div>
 
           <button
-            type="submit"
-            disabled={loading || !selectedRoom}
+            type="button"
+            onClick={handleBook}
+            disabled={loading || !selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false}
             style={{
               width: '100%',
-              padding: '14px',
-              backgroundColor: !selectedRoom ? '#DDD' : '#6B4E8A',
+              padding: '16px',
+              backgroundColor: (!selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false) ? '#94A3B8' : '#6B4E8A',
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
-              cursor: !selectedRoom ? 'not-allowed' : 'pointer',
+              borderRadius: '10px',
+              cursor: (!selectedDate || !selectedJamKe || roomAvailability[selectedRoom] === false || loading) ? 'not-allowed' : 'pointer',
               fontSize: '16px',
-              fontWeight: '600',
-              transition: 'background-color 0.3s, transform 0.2s',
-              opacity: loading ? 0.8 : 1,
+              fontWeight: '700',
+              transition: 'all 0.25s ease',
+              boxShadow: (!selectedDate || !selectedJamKe) ? 'none' : '0 4px 14px rgba(107, 78, 138, 0.35)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
             }}
             onMouseEnter={(e) => {
-              if (selectedRoom) {
-                e.target.style.backgroundColor = '#5A3E76';
-                e.target.style.transform = 'translateY(-2px)';
+              if (selectedDate && selectedJamKe && roomAvailability[selectedRoom] !== false && !loading) {
+                e.currentTarget.style.backgroundColor = '#583C74';
+                e.currentTarget.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseLeave={(e) => {
-              if (selectedRoom) {
-                e.target.style.backgroundColor = '#6B4E8A';
-                e.target.style.transform = 'translateY(0)';
+              if (selectedDate && selectedJamKe && roomAvailability[selectedRoom] !== false && !loading) {
+                e.currentTarget.style.backgroundColor = '#6B4E8A';
+                e.currentTarget.style.transform = 'translateY(0)';
               }
             }}
           >
-            {loading ? 'Please wait...' : 'Confirm Booking'}
+            {loading ? (
+              <>
+                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+                <span>Memproses Booking...</span>
+              </>
+            ) : (
+              <>
+                <span>Confirm Booking for Ruang {getRoomName(selectedRoom)}</span>
+                <span>➔</span>
+              </>
+            )}
           </button>
-        </form>
+        </div>
       )}
 
       {/* Messages */}
@@ -1145,6 +1733,16 @@ function LecturerBooking({ lecturer_id }) {
           from {
             opacity: 0;
             transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes cascadeSlideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
           }
           to {
             opacity: 1;
