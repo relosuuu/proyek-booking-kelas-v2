@@ -162,10 +162,21 @@ function StudentAvailabilityChecker() {
         padding: '60px 20px',
         textAlign: 'center',
       }}>
-        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
-        <p style={{ color: '#6B4E8A', fontSize: '18px', fontWeight: '600' }}>
-          Memuat data ruangan & ketersediaan dari database...
+        <div style={{
+          width: '36px',
+          height: '36px',
+          border: '4px solid #E0D6EA',
+          borderTopColor: '#6B4E8A',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          margin: '0 auto 16px',
+        }} />
+        <p style={{ color: '#6B4E8A', fontSize: '16px', fontWeight: '600' }}>
+          Memuat data ruangan & ketersediaan...
         </p>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
       </div>
     );
   }
@@ -179,11 +190,11 @@ function StudentAvailabilityChecker() {
       {/* Title & Current Jam-Ke Banner */}
       <div style={{
         background: 'white',
-        borderRadius: '16px',
+        borderRadius: '12px',
         padding: '24px 28px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
         marginBottom: '30px',
-        border: '1px solid #E2E8F0',
+        border: '2px solid #E8D4C8',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
           <div>
@@ -197,7 +208,7 @@ function StudentAvailabilityChecker() {
             </h1>
             <p style={{
               fontSize: '14px',
-              color: '#64748B',
+              color: '#6B4E8A',
               margin: 0,
             }}>
               Lihat jadwal dan status ketersediaan ruangan kelas secara real-time
@@ -208,80 +219,76 @@ function StudentAvailabilityChecker() {
             onClick={fetchRooms}
             style={{
               padding: '8px 16px',
-              backgroundColor: '#F1F5F9',
-              color: '#475569',
-              border: '1px solid #CBD5E1',
-              borderRadius: '8px',
+              backgroundColor: '#F5F5F5',
+              color: '#1a2a4e',
+              border: '1px solid #E8D4C8',
+              borderRadius: '6px',
               cursor: 'pointer',
               fontSize: '13px',
               fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
             }}
-            title="Refresh data"
           >
-            🔄 Refresh
+            Refresh
           </button>
         </div>
 
-        {/* Live Jam-Ke and Date Info Bar */}
+        {/* Live Jam-Ke and Date Info */}
         <div style={{
           marginTop: '20px',
           padding: '16px 20px',
-          background: '#F8FAFC',
-          borderRadius: '12px',
-          border: '1px solid #E2E8F0',
+          background: '#FAFAFA',
+          borderRadius: '8px',
+          border: '1px solid #E8D4C8',
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '16px',
         }}>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              📅 Tanggal Hari Ini
+            <div style={{ fontSize: '12px', color: '#6B4E8A', fontWeight: '600' }}>
+              Tanggal Hari Ini
             </div>
-            <div style={{ fontSize: '16px', color: '#1E293B', fontWeight: '700', marginTop: '2px' }}>
+            <div style={{ fontSize: '16px', color: '#1a2a4e', fontWeight: '700', marginTop: '2px' }}>
               {today}
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              🕒 Waktu Saat Ini
+            <div style={{ fontSize: '12px', color: '#6B4E8A', fontWeight: '600' }}>
+              Waktu Saat Ini
             </div>
-            <div style={{ fontSize: '16px', color: '#1E293B', fontWeight: '700', marginTop: '2px' }}>
+            <div style={{ fontSize: '16px', color: '#1a2a4e', fontWeight: '700', marginTop: '2px' }}>
               {jamInfo.timeFormatted} WIB
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              ⏰ Status Jam Perkuliahan
+            <div style={{ fontSize: '12px', color: '#6B4E8A', fontWeight: '600' }}>
+              Status Jam Perkuliahan
             </div>
             <div style={{ marginTop: '4px' }}>
               {jamInfo.isClassHours ? (
                 <span style={{
-                  backgroundColor: '#DCFCE7',
-                  color: '#166534',
+                  backgroundColor: '#E8F5E9',
+                  color: '#2E7D32',
                   padding: '4px 10px',
                   borderRadius: '6px',
                   fontWeight: '700',
                   fontSize: '13px',
                   display: 'inline-block',
                 }}>
-                  🟢 Jam Ke-{jamInfo.jamKe} ({jamInfo.label})
+                  Jam Ke-{jamInfo.jamKe} ({jamInfo.label})
                 </span>
               ) : (
                 <span style={{
-                  backgroundColor: '#FEF3C7',
-                  color: '#92400E',
+                  backgroundColor: '#F5F5F5',
+                  color: '#666',
                   padding: '4px 10px',
                   borderRadius: '6px',
                   fontWeight: '600',
                   fontSize: '12px',
                   display: 'inline-block',
                 }}>
-                  🌙 {jamInfo.statusText}
+                  {jamInfo.statusText}
                 </span>
               )}
             </div>
@@ -290,7 +297,7 @@ function StudentAvailabilityChecker() {
 
         {/* Filter Jam-Ke Slot */}
         <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a2a4e' }}>
             Filter Ketersediaan:
           </span>
 
@@ -299,9 +306,9 @@ function StudentAvailabilityChecker() {
             style={{
               padding: '6px 14px',
               borderRadius: '20px',
-              border: '1px solid ' + (filterJamKe === 'all' ? '#6B4E8A' : '#CBD5E1'),
+              border: '1px solid ' + (filterJamKe === 'all' ? '#6B4E8A' : '#E8D4C8'),
               backgroundColor: filterJamKe === 'all' ? '#6B4E8A' : 'white',
-              color: filterJamKe === 'all' ? 'white' : '#475569',
+              color: filterJamKe === 'all' ? 'white' : '#1a2a4e',
               fontSize: '12px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -316,15 +323,15 @@ function StudentAvailabilityChecker() {
               style={{
                 padding: '6px 14px',
                 borderRadius: '20px',
-                border: '1px solid ' + (filterJamKe === jamInfo.jamKe ? '#059669' : '#86EFAC'),
-                backgroundColor: filterJamKe === jamInfo.jamKe ? '#059669' : '#ECFDF5',
-                color: filterJamKe === jamInfo.jamKe ? 'white' : '#166534',
+                border: '1px solid ' + (filterJamKe === jamInfo.jamKe ? '#4CAF50' : '#C8E6C9'),
+                backgroundColor: filterJamKe === jamInfo.jamKe ? '#4CAF50' : '#E8F5E9',
+                color: filterJamKe === jamInfo.jamKe ? 'white' : '#2E7D32',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: 'pointer',
               }}
             >
-              ⚡ Saat Ini (Jam Ke-{jamInfo.jamKe})
+              Saat Ini (Jam Ke-{jamInfo.jamKe})
             </button>
           )}
 
@@ -334,10 +341,10 @@ function StudentAvailabilityChecker() {
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
-              border: '1px solid #CBD5E1',
+              border: '1px solid #E8D4C8',
               backgroundColor: 'white',
               fontSize: '12px',
-              color: '#334155',
+              color: '#1a2a4e',
               cursor: 'pointer',
               fontWeight: '500',
             }}
@@ -352,7 +359,7 @@ function StudentAvailabilityChecker() {
 
           {checkingAvail && (
             <span style={{ fontSize: '12px', color: '#6B4E8A', marginLeft: '6px' }}>
-              ⏳ Memeriksa ketersediaan...
+              Memeriksa ketersediaan...
             </span>
           )}
         </div>
@@ -360,9 +367,9 @@ function StudentAvailabilityChecker() {
 
       {error && (
         <div style={{
-          backgroundColor: '#FEE2E2',
-          border: '1px solid #EF4444',
-          color: '#991B1B',
+          backgroundColor: '#FFEBEE',
+          border: '1px solid #F44336',
+          color: '#C62828',
           padding: '12px 16px',
           borderRadius: '8px',
           marginBottom: '20px',
@@ -375,10 +382,10 @@ function StudentAvailabilityChecker() {
       {!selectedRoom ? (
         <div style={{
           background: 'white',
-          borderRadius: '16px',
+          borderRadius: '12px',
           padding: '30px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
-          border: '1px solid #E2E8F0',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+          border: '1px solid #E8D4C8',
         }}>
           {/* Campus Selection */}
           <div style={{ marginBottom: '35px' }}>
@@ -387,20 +394,16 @@ function StudentAvailabilityChecker() {
               color: '#1a2a4e',
               marginBottom: '15px',
               fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
             }}>
-              <span style={{ fontSize: '24px' }}>🏛️</span>
               Pilih Lokasi Kampus ({campuses.length} Tersedia)
             </h2>
 
             {campuses.length === 0 ? (
               <div style={{
                 padding: '20px',
-                background: '#F8FAFC',
+                background: '#FAFAFA',
                 borderRadius: '8px',
-                color: '#64748B',
+                color: '#999',
                 textAlign: 'center',
                 fontSize: '14px',
               }}>
@@ -425,21 +428,25 @@ function StudentAvailabilityChecker() {
                         setSelectedFloor(null);
                       }}
                       style={{
-                        padding: '16px 20px',
-                        backgroundColor: isSelected ? '#6B4E8A' : '#F8FAFC',
+                        padding: '14px 18px',
+                        backgroundColor: isSelected ? '#6B4E8A' : '#F5F5F5',
                         color: isSelected ? 'white' : '#1a2a4e',
-                        border: '2px solid ' + (isSelected ? '#6B4E8A' : '#E2E8F0'),
+                        border: '2px solid ' + (isSelected ? '#6B4E8A' : '#E8D4C8'),
                         cursor: 'pointer',
-                        borderRadius: '12px',
-                        fontWeight: '700',
-                        fontSize: '15px',
-                        transition: 'all 0.25s ease',
-                        boxShadow: isSelected ? '0 4px 12px rgba(107, 78, 138, 0.3)' : 'none',
-                        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        transition: 'all 0.3s',
                         textAlign: 'left',
                       }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = '#E8D4C8';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = '#F5F5F5';
+                      }}
                     >
-                      <div style={{ fontSize: '16px' }}>Kampus {campus}</div>
+                      <div>Kampus {campus}</div>
                       <div style={{
                         fontSize: '12px',
                         marginTop: '4px',
@@ -457,17 +464,13 @@ function StudentAvailabilityChecker() {
 
           {/* Building Selection */}
           {selectedCampus && (
-            <div style={{ marginBottom: '35px' }}>
+            <div style={{ marginBottom: '35px', paddingTop: '20px', borderTop: '1px solid #F0F0F0' }}>
               <h2 style={{
                 fontSize: '18px',
                 color: '#1a2a4e',
                 marginBottom: '15px',
                 fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
               }}>
-                <span style={{ fontSize: '24px' }}>🏢</span>
                 Pilih Gedung di Kampus {selectedCampus}
               </h2>
               <div style={{
@@ -484,6 +487,16 @@ function StudentAvailabilityChecker() {
                   const isFull = !hasAvailableSlot(buildingRooms);
                   const isSelected = selectedBuilding === building;
 
+                  let cardBg = isFull ? '#FFEBEE' : '#E8F5E9';
+                  let cardBorder = isFull ? '#FFCDD2' : '#C8E6C9';
+                  let textColor = isFull ? '#C62828' : '#2E7D32';
+
+                  if (isSelected) {
+                    cardBg = '#C5587A';
+                    cardBorder = '#C5587A';
+                    textColor = 'white';
+                  }
+
                   return (
                     <button
                       key={building}
@@ -492,25 +505,21 @@ function StudentAvailabilityChecker() {
                         setSelectedFloor(null);
                       }}
                       style={{
-                        padding: '16px 20px',
-                        backgroundColor: isSelected
-                          ? '#6B4E8A'
-                          : isFull ? '#EF4444' : '#0284C7',
-                        color: 'white',
-                        border: '2px solid ' + (isSelected ? '#4C3366' : 'transparent'),
+                        padding: '14px 18px',
+                        backgroundColor: cardBg,
+                        color: textColor,
+                        border: '2px solid ' + cardBorder,
                         cursor: 'pointer',
-                        borderRadius: '12px',
+                        borderRadius: '8px',
                         fontWeight: '700',
-                        fontSize: '15px',
+                        fontSize: '14px',
                         transition: 'all 0.25s',
-                        transform: isSelected ? 'scale(1.03)' : 'scale(1)',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
                         textAlign: 'left',
                       }}
                     >
                       <div>Gedung {building}</div>
-                      <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.9, fontWeight: '500' }}>
-                        {isFull ? '🔴 Penuh' : '🟢 Ada Ruang Kosong'} ({buildingRooms.length} Kelas)
+                      <div style={{ fontSize: '12px', marginTop: '6px', opacity: isSelected ? 0.9 : 0.85, fontWeight: '500' }}>
+                        {isFull ? 'Penuh' : 'Ada Ruang Kosong'} &middot; {buildingRooms.length} Kelas
                       </div>
                     </button>
                   );
@@ -521,17 +530,13 @@ function StudentAvailabilityChecker() {
 
           {/* Floor Selection */}
           {selectedBuilding && (
-            <div style={{ marginBottom: '35px' }}>
+            <div style={{ marginBottom: '35px', paddingTop: '20px', borderTop: '1px solid #F0F0F0' }}>
               <h2 style={{
                 fontSize: '18px',
                 color: '#1a2a4e',
                 marginBottom: '15px',
                 fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
               }}>
-                <span style={{ fontSize: '24px' }}>📍</span>
                 Pilih Lantai di Gedung {selectedBuilding}
               </h2>
               <div style={{
@@ -549,30 +554,36 @@ function StudentAvailabilityChecker() {
                   const isFull = !hasAvailableSlot(floorRooms);
                   const isSelected = selectedFloor === floor;
 
+                  let cardBg = isFull ? '#FFEBEE' : '#E8F5E9';
+                  let cardBorder = isFull ? '#FFCDD2' : '#C8E6C9';
+                  let textColor = isFull ? '#C62828' : '#2E7D32';
+
+                  if (isSelected) {
+                    cardBg = '#1E293B';
+                    cardBorder = '#1E293B';
+                    textColor = 'white';
+                  }
+
                   return (
                     <button
                       key={floor}
                       onClick={() => setSelectedFloor(floor)}
                       style={{
-                        padding: '16px 20px',
-                        backgroundColor: isSelected
-                          ? '#6B4E8A'
-                          : isFull ? '#EF4444' : '#0284C7',
-                        color: 'white',
-                        border: '2px solid ' + (isSelected ? '#4C3366' : 'transparent'),
+                        padding: '14px 18px',
+                        backgroundColor: cardBg,
+                        color: textColor,
+                        border: '2px solid ' + cardBorder,
                         cursor: 'pointer',
-                        borderRadius: '12px',
+                        borderRadius: '8px',
                         fontWeight: '700',
-                        fontSize: '15px',
+                        fontSize: '14px',
                         transition: 'all 0.25s',
-                        transform: isSelected ? 'scale(1.03)' : 'scale(1)',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
                         textAlign: 'left',
                       }}
                     >
                       <div>Lantai {floor}</div>
-                      <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.9, fontWeight: '500' }}>
-                        {isFull ? '🔴 Penuh' : '🟢 Ada Kosong'} ({floorRooms.length} Kelas)
+                      <div style={{ fontSize: '12px', marginTop: '6px', opacity: isSelected ? 0.9 : 0.85, fontWeight: '500' }}>
+                        {isFull ? 'Penuh' : 'Ada Kosong'} &middot; {floorRooms.length} Kelas
                       </div>
                     </button>
                   );
@@ -583,22 +594,18 @@ function StudentAvailabilityChecker() {
 
           {/* Classes on Selected Floor */}
           {selectedFloor && (
-            <div>
+            <div style={{ paddingTop: '20px', borderTop: '1px solid #F0F0F0' }}>
               <h2 style={{
                 fontSize: '18px',
                 color: '#1a2a4e',
                 marginBottom: '15px',
                 fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
               }}>
-                <span style={{ fontSize: '24px' }}>🚪</span>
-                Ruangan Kelas di Lantai {selectedFloor} (Klik untuk lihat jadwal lengkap)
+                Ruangan Kelas di Lantai {selectedFloor}
               </h2>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                 gap: '14px',
               }}>
                 {roomsOnFloor.map((room) => {
@@ -608,39 +615,33 @@ function StudentAvailabilityChecker() {
                       key={room.id}
                       onClick={() => setSelectedRoom(room.id)}
                       style={{
-                        padding: '20px 18px',
-                        backgroundColor: isAvailable ? '#0284C7' : '#EF4444',
-                        color: 'white',
-                        border: 'none',
+                        padding: '18px 16px',
+                        backgroundColor: isAvailable ? '#E8F5E9' : '#FFEBEE',
+                        color: isAvailable ? '#2E7D32' : '#C62828',
+                        border: '2px solid ' + (isAvailable ? '#C8E6C9' : '#FFCDD2'),
                         cursor: 'pointer',
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         fontSize: '16px',
                         fontWeight: '700',
-                        transition: 'all 0.25s',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        transition: 'all 0.2s',
                         textAlign: 'center',
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.18)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
-                      <div style={{ fontSize: '20px', fontWeight: '800' }}>{room.name}</div>
+                      <div style={{ fontSize: '18px', fontWeight: '800' }}>{room.name}</div>
                       <div style={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         marginTop: '8px',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        background: 'rgba(255, 255, 255, 0.25)',
-                        fontWeight: '600',
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        display: 'inline-block',
+                        backgroundColor: isAvailable ? '#C8E6C9' : '#FFCDD2',
+                        fontWeight: '700',
                       }}>
-                        {isAvailable ? '🟢 Tersedia (Free)' : '🔴 Penuh (Booked)'}
+                        {isAvailable ? 'Tersedia' : 'Penuh'}
                       </div>
-                      <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.85 }}>
+                      <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.75, color: '#1a2a4e' }}>
                         Kapasitas: {room.capacity} org
                       </div>
                     </button>
@@ -713,15 +714,26 @@ function DetailView({ roomId, roomName, onBack, today, currentJamKe }) {
     return (
       <div style={{
         background: 'white',
-        borderRadius: '16px',
+        borderRadius: '12px',
         padding: '50px 20px',
         textAlign: 'center',
-        border: '1px solid #E2E8F0',
+        border: '1px solid #E8D4C8',
       }}>
-        <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-        <p style={{ color: '#6B4E8A', fontSize: '16px', fontWeight: '600' }}>
+        <div style={{
+          width: '32px',
+          height: '32px',
+          border: '4px solid #E0D6EA',
+          borderTopColor: '#6B4E8A',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          margin: '0 auto 14px',
+        }} />
+        <p style={{ color: '#6B4E8A', fontSize: '15px', fontWeight: '600' }}>
           Memeriksa 10 slot jam perkuliahan untuk {roomName}...
         </p>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
       </div>
     );
   }
@@ -729,51 +741,47 @@ function DetailView({ roomId, roomName, onBack, today, currentJamKe }) {
   return (
     <div style={{
       background: 'white',
-      borderRadius: '16px',
+      borderRadius: '12px',
       padding: '30px',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
-      border: '1px solid #E2E8F0',
+      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+      border: '1px solid #E8D4C8',
     }}>
       <button
         onClick={onBack}
         style={{
           padding: '10px 20px',
-          backgroundColor: '#F1F5F9',
-          color: '#334155',
-          border: '1px solid #CBD5E1',
+          backgroundColor: '#F5F5F5',
+          color: '#1a2a4e',
+          border: '1px solid #E8D4C8',
           borderRadius: '8px',
           cursor: 'pointer',
-          fontWeight: '700',
+          fontWeight: '600',
           fontSize: '14px',
           marginBottom: '24px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          transition: 'all 0.2s',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#E2E8F0'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#F1F5F9'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#E8D4C8'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#F5F5F5'; }}
       >
         ← Kembali ke Daftar Ruangan
       </button>
 
       <div style={{ marginBottom: '25px' }}>
         <h2 style={{
-          fontSize: '26px',
+          fontSize: '24px',
           color: '#1a2a4e',
           margin: '0 0 6px 0',
           fontWeight: '700',
         }}>
           Ruang {roomName} — Jadwal Hari Ini ({today})
         </h2>
-        <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>
-          Berikut status ketersediaan di setiap jam perkuliahan (Jam Ke-1 s/d Jam Ke-10):
+        <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>
+          Status ketersediaan di setiap jam perkuliahan (Jam Ke-1 s/d Jam Ke-10):
         </p>
       </div>
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         gap: '14px',
       }}>
         {slots.map((slot) => {
@@ -783,50 +791,36 @@ function DetailView({ roomId, roomName, onBack, today, currentJamKe }) {
             <div
               key={slot.jamKe}
               style={{
-                padding: '20px 16px',
-                backgroundColor: slot.isAvailable ? '#0284C7' : '#EF4444',
-                color: 'white',
-                borderRadius: '12px',
+                padding: '18px 14px',
+                backgroundColor: slot.isAvailable ? '#E8F5E9' : '#FFEBEE',
+                color: slot.isAvailable ? '#2E7D32' : '#C62828',
+                border: '2px solid ' + (isCurrentSlot ? '#6B4E8A' : (slot.isAvailable ? '#C8E6C9' : '#FFCDD2')),
+                borderRadius: '10px',
                 textAlign: 'center',
                 fontWeight: '600',
-                transition: 'all 0.25s',
-                position: 'relative',
-                boxShadow: isCurrentSlot ? '0 0 0 3px #FBBF24, 0 6px 20px rgba(0,0,0,0.15)' : '0 4px 12px rgba(0,0,0,0.08)',
               }}
             >
-              {isCurrentSlot && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  right: '10px',
-                  backgroundColor: '#F59E0B',
-                  color: 'white',
-                  fontSize: '10px',
-                  fontWeight: '800',
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                }}>
-                  SAAT INI
-                </div>
-              )}
-
-              <div style={{ fontSize: '18px', fontWeight: '800', marginBottom: '6px' }}>
+              <div style={{ fontSize: '17px', fontWeight: '800', marginBottom: '4px' }}>
                 Jam Ke-{slot.jamKe}
               </div>
-              <div style={{ fontSize: '13px', marginBottom: '12px', opacity: 0.95, fontWeight: '500' }}>
+              <div style={{ fontSize: '12px', marginBottom: '10px', opacity: 0.85, fontWeight: '500' }}>
                 {jamKeNames[slot.jamKe]}
               </div>
               <div style={{
-                fontSize: '13px',
+                fontSize: '12px',
                 fontWeight: '700',
-                padding: '6px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                display: 'inline-block',
+                backgroundColor: slot.isAvailable ? '#C8E6C9' : '#FFCDD2',
               }}>
-                {slot.isAvailable ? '🟢 Tersedia (Free)' : '🔴 Terpakai (Booked)'}
+                {slot.isAvailable ? 'Tersedia' : 'Terpakai'}
               </div>
+              {isCurrentSlot && (
+                <div style={{ fontSize: '11px', marginTop: '8px', fontWeight: '700', color: '#6B4E8A' }}>
+                  Saat ini
+                </div>
+              )}
             </div>
           );
         })}
