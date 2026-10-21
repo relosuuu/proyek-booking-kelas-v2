@@ -238,7 +238,7 @@ function StudentAvailabilityChecker() {
         }}>
           <div>
             <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              📅 Tanggal Hari Ini
+              Tanggal Hari Ini
             </div>
             <div style={{ fontSize: '16px', color: '#1E293B', fontWeight: '700', marginTop: '2px' }}>
               {today}
@@ -247,7 +247,7 @@ function StudentAvailabilityChecker() {
 
           <div>
             <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              🕒 Waktu Saat Ini
+              Waktu Saat Ini
             </div>
             <div style={{ fontSize: '16px', color: '#1E293B', fontWeight: '700', marginTop: '2px' }}>
               {jamInfo.timeFormatted} WIB
@@ -256,7 +256,7 @@ function StudentAvailabilityChecker() {
 
           <div>
             <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>
-              ⏰ Status Jam Perkuliahan
+              Status Jam Perkuliahan
             </div>
             <div style={{ marginTop: '4px' }}>
               {jamInfo.isClassHours ? (
@@ -324,7 +324,7 @@ function StudentAvailabilityChecker() {
                 cursor: 'pointer',
               }}
             >
-              ⚡ Saat Ini (Jam Ke-{jamInfo.jamKe})
+              Saat Ini (Jam Ke-{jamInfo.jamKe})
             </button>
           )}
 
@@ -391,7 +391,7 @@ function StudentAvailabilityChecker() {
               alignItems: 'center',
               gap: '10px',
             }}>
-              <span style={{ fontSize: '24px' }}>🏛️</span>
+              <span style={{ fontSize: '24px' }}></span>
               Pilih Lokasi Kampus ({campuses.length} Tersedia)
             </h2>
 
@@ -467,7 +467,7 @@ function StudentAvailabilityChecker() {
                 alignItems: 'center',
                 gap: '10px',
               }}>
-                <span style={{ fontSize: '24px' }}>🏢</span>
+                <span style={{ fontSize: '24px' }}></span>
                 Pilih Gedung di Kampus {selectedCampus}
               </h2>
               <div style={{
@@ -510,7 +510,7 @@ function StudentAvailabilityChecker() {
                     >
                       <div>Gedung {building}</div>
                       <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.9, fontWeight: '500' }}>
-                        {isFull ? '🔴 Penuh' : '🟢 Ada Ruang Kosong'} ({buildingRooms.length} Kelas)
+                        {isFull ? 'Penuh' : 'Ada Ruang Kosong'} ({buildingRooms.length} Kelas)
                       </div>
                     </button>
                   );
@@ -572,7 +572,7 @@ function StudentAvailabilityChecker() {
                     >
                       <div>Lantai {floor}</div>
                       <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.9, fontWeight: '500' }}>
-                        {isFull ? '🔴 Penuh' : '🟢 Ada Kosong'} ({floorRooms.length} Kelas)
+                        {isFull ? 'Penuh' : 'Ada Kosong'} ({floorRooms.length} Kelas)
                       </div>
                     </button>
                   );
@@ -638,7 +638,7 @@ function StudentAvailabilityChecker() {
                         background: 'rgba(255, 255, 255, 0.25)',
                         fontWeight: '600',
                       }}>
-                        {isAvailable ? '🟢 Tersedia (Free)' : '🔴 Penuh (Booked)'}
+                        {isAvailable ? 'Tersedia (Free)' : 'Penuh (Booked)'}
                       </div>
                       <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.85 }}>
                         Kapasitas: {room.capacity} org
@@ -825,7 +825,7 @@ function DetailView({ roomId, roomName, onBack, today, currentJamKe }) {
                 borderRadius: '6px',
                 backgroundColor: 'rgba(255, 255, 255, 0.25)',
               }}>
-                {slot.isAvailable ? '🟢 Tersedia (Free)' : '🔴 Terpakai (Booked)'}
+                {slot.isAvailable ? 'Tersedia (Free)' : 'Terpakai (Booked)'}
               </div>
             </div>
           );
