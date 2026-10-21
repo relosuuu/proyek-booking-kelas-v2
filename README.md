@@ -147,4 +147,4 @@ Database engine: PostgreSQL (via Supabase)
 
 ## License
 
-ISC License.
+MIT License.
